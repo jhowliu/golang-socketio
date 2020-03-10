@@ -7,9 +7,14 @@ You can check working chat server, based on caller library, at http://funstream.
 
 Examples directory contains simple client and server.
 
+### Feature
+
+Support Laravel-echo-server transport message format.
+
+
 ### Installation
 
-    go get github.com/graarh/golang-socketio
+    go get github.com/jhowliu/golang-socketio
 
 ### Simple server usage
 
@@ -153,6 +158,30 @@ var socket = io('ws://yourdomain.com', {transports: ['websocket']});
 
 	//close connection
 	c.Close()
+```
+
+### Client With Laravel-Echo-Server (NEW)
+```go
+
+// Subscribe to specified private channel in laravel-echo-server
+func subscribe(c *socketIO.Client, headers Headers) {
+	data := Data{
+		Channel: "private-member.7777",
+		Auth:    headers,
+	}
+
+	err := c.Ack("subscribe", data)
+	if err != nil {
+		log.Fatal(err)
+	} else {
+		log.Println("Join successfully")
+	}
+}
+
+// Listening Event from channels
+c.On(EVENT_SOMETHING, func(h *socketIO.Channel, msg Message) {
+	log.Println('RECEIVE "EVENT_SOMETHING" EVENT')
+})
 ```
 
 ### Roadmap
