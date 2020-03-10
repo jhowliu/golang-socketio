@@ -1,11 +1,12 @@
 package main
 
 import (
-	"github.com/graarh/golang-socketio"
-	"github.com/graarh/golang-socketio/transport"
 	"log"
 	"runtime"
 	"time"
+
+	gosocketio "github.com/jhowliu/golang-socketio"
+	"github.com/jhowliu/golang-socketio/transport"
 )
 
 type Channel struct {
@@ -20,11 +21,11 @@ type Message struct {
 
 func sendJoin(c *gosocketio.Client) {
 	log.Println("Acking /join")
-	result, err := c.Ack("/join", Channel{"main"}, time.Second*5)
+	err := c.Ack("/join", Channel{"main"})
 	if err != nil {
 		log.Fatal(err)
 	} else {
-		log.Println("Ack result to /join: ", result)
+		log.Println("Join Successfully.")
 	}
 }
 
@@ -46,7 +47,7 @@ func main() {
 	}
 
 	err = c.On(gosocketio.OnDisconnection, func(h *gosocketio.Channel) {
-		log.Fatal("Disconnected")
+		log.Println("Disconnected")
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -67,7 +68,7 @@ func main() {
 	go sendJoin(c)
 	go sendJoin(c)
 
-	time.Sleep(60 * time.Second)
+	time.Sleep(10 * time.Second)
 	c.Close()
 
 	log.Println(" [x] Complete")

@@ -166,6 +166,11 @@ func getMethod(text string) (method, channel, restText string, err error) {
 			rest = i + 1
 			break
 		}
+		// For being compatible with common transported message format
+		if c == '{' {
+			rest = i
+			break
+		}
 	}
 
 	if (methodEnd < methodStart) || (rest >= len(text)) {
