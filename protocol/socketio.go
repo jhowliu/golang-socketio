@@ -15,8 +15,8 @@ const (
 	ackMessage    = "43"
 
 	CloseMessage = "1"
-	PingMessage = "2"
-	PongMessage = "3"
+	PingMessage  = "2"
+	PongMessage  = "3"
 )
 
 var (
@@ -138,24 +138,29 @@ func getAck(text string) (ackId int, restText string, err error) {
 /**
 Get message method of current packet, if present
 */
-func getMethod(text string) (method, restText string, err error) {
-	var start, end, rest, countQuote int
+func getMethod(text string) (method, channel, restText string, err error) {
+	var methodStart, methodEnd, channelStart, channelEnd, rest, countQuote int
 
 	for i, c := range text {
 		if c == '"' {
 			switch countQuote {
 			case 0:
-				start = i + 1
+				methodStart = i + 1
 			case 1:
-				end = i
+				methodEnd = i
+				rest = i + 1
+			case 2:
+				channelStart = i + 1
+			case 3:
+				channelEnd = i
 				rest = i + 1
 			default:
-				return "", "", ErrorWrongPacket
+				return "", "", "", ErrorWrongPacket
 			}
 			countQuote++
 		}
 		if c == ',' {
-			if countQuote < 2 {
+			if countQuote < 4 {
 				continue
 			}
 			rest = i + 1
@@ -163,11 +168,11 @@ func getMethod(text string) (method, restText string, err error) {
 		}
 	}
 
-	if (end < start) || (rest >= len(text)) {
-		return "", "", ErrorWrongPacket
+	if (methodEnd < methodStart) || (rest >= len(text)) {
+		return "", "", "", ErrorWrongPacket
 	}
 
-	return text[start:end], text[rest : len(text)-1], nil
+	return text[methodStart:methodEnd], text[channelStart:channelEnd], text[rest : len(text)-1], nil
 }
 
 func Decode(data string) (*Message, error) {
@@ -205,7 +210,7 @@ func Decode(data string) (*Message, error) {
 		rest = data[2:]
 	}
 
-	msg.Method, msg.Args, err = getMethod(rest)
+	msg.Method, msg.Channel, msg.Args, err = getMethod(rest)
 	if err != nil {
 		return nil, err
 	}
