@@ -3,9 +3,9 @@ package gosocketio
 import (
 	"encoding/json"
 	"errors"
-	"github.com/graarh/golang-socketio/protocol"
 	"log"
-	"time"
+
+	"github.com/jhowliu/golang-socketio/protocol"
 )
 
 var (
@@ -62,26 +62,17 @@ func (c *Channel) Emit(method string, args interface{}) error {
 /**
 Create ack packet based on given data and send it and receive response
 */
-func (c *Channel) Ack(method string, args interface{}, timeout time.Duration) (string, error) {
+func (c *Channel) Ack(method string, args interface{}) error {
 	msg := &protocol.Message{
 		Type:   protocol.MessageTypeAckRequest,
 		AckId:  c.ack.getNextId(),
 		Method: method,
 	}
 
-	waiter := make(chan string)
-	c.ack.addWaiter(msg.AckId, waiter)
-
 	err := send(msg, c, args)
 	if err != nil {
-		c.ack.removeWaiter(msg.AckId)
+		return err
 	}
 
-	select {
-	case result := <-waiter:
-		return result, nil
-	case <-time.After(timeout):
-		c.ack.removeWaiter(msg.AckId)
-		return "", ErrorSendTimeout
-	}
+	return nil
 }
